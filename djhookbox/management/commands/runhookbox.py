@@ -26,10 +26,12 @@ class Command(NoArgsCommand):
         make_option('--cbhost', help = 'the callback host', metavar = 'HOST'),
         make_option('--cbport', help = 'the callback path prefix', metavar = 'PORT'),
         make_option('--cbpath', help = 'the callback path prefix [/hookbox]'),
+        make_option('-w', '--web-api-port', help = 'bind web api listening socket to'),
 
         make_option('-s', '--webhook-secret',     help = 'callback secret token (passed to django by hookbox)', metavar = 'SECRET'),
         make_option('-r', '--api-security-token', help = 'web API secret token (passed to hookbox by django)', metavar = 'SECRET'),
         make_option('-a', '--admin-password',     help = 'hookbox administrator password', metavar = 'PASSWD'),
+        make_option('-f', '--fail-publish-non-existing-channels',     help = 'fail if publishing to a not existing channels', metavar = 'FAILNONEXISTINGCHANNEL'),
     )
 
     help = 'Start a hookbox server.'
@@ -52,11 +54,12 @@ class Command(NoArgsCommand):
 
             if not options.get(optvar) is None:
                 value = options.get(optvar)
-            elif hasattr(settings, setvar):
+
+            if not value and hasattr(settings, setvar):
                 value = getattr(settings, setvar)
 
             if value:
-                hbargs.extend(['--%s' % opt, value])
+                hbargs.extend(['--%s' % opt, str(value)])
 
         # TODO: Support runserver options for determining host/port
         hbargs = [options.get('executable'),
@@ -72,6 +75,7 @@ class Command(NoArgsCommand):
         addopt(hbargs, 'webhook-secret')
         addopt(hbargs, 'api-security-token')
         addopt(hbargs, 'admin-password')
+        addopt(hbargs, 'fail-publish-non-existing-channels')
 
         self.proc = subprocess.Popen(hbargs, **kwargs)
 
