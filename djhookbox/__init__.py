@@ -27,7 +27,7 @@ def _url(method):
 def _send(method, data):
     if apitoken:
         data['security_token'] = apitoken
-    if originator:
+    if originator and method=='publish':
         data['originator'] = originator
 
     try:
