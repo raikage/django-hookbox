@@ -19,6 +19,7 @@ def _server():
     return "http://%s:%s" % (interface, port)
 
 apitoken = getattr(settings, 'HOOKBOX_API_SECURITY_TOKEN', None)
+originator = getattr(settings, 'HOOKBOX_ORIGINATOR', None)
 
 def _url(method):
     return '%s/web/%s' % (_server(), method)
@@ -26,6 +27,8 @@ def _url(method):
 def _send(method, data):
     if apitoken:
         data['security_token'] = apitoken
+    if originator:
+        data['originator'] = originator
 
     try:
         req = urllib2.Request(_url(method), urllib.urlencode(data))
