@@ -17,10 +17,10 @@ secret = getattr(settings, 'HOOKBOX_WEBHOOK_SECRET', None)
 
 _callbacks = []
 
-def _call_callbacks(op, *args, **kwargs):
+def _call_callbacks(request, op, *args, **kwargs):
     result = None
     for callback in [cb for (cbop, cb) in _callbacks if cbop is None or cbop == op]:
-        oneresult = callback(op, *args, **kwargs)
+        oneresult = callback(request, op, *args, **kwargs)
         if result is None:
             result = oneresult
         elif not oneresult is None:
@@ -116,7 +116,7 @@ def webhook(method):
 @webhook
 def connect(request):
     signals['connect'].send(request.user)
-    _call_callbacks('connect', request.user)
+    _call_callbacks(request, 'connect', request.user)
 
     if request.user.is_authenticated():
         username = request.user.username
@@ -130,27 +130,27 @@ def connect(request):
 @webhook
 def disconnect(request):
     signals['disconnect'].send_robust(request.user)
-    _call_callbacks('disconnect', request.user)
+    _call_callbacks(request, 'disconnect', request.user)
 
 @webhook
 def create_channel(request):
-    result = _call_callbacks('create', request.user, request.POST['channel_name'])
+    result = _call_callbacks(request, 'create', request.user, request.POST['channel_name'])
     return result or [False, {'msg': 'unrecognized channel: %s' % request.POST['channel_name']}]
 
 @webhook
 def publish(request):
-    return _call_callbacks('publish', request.user, request.POST['channel_name'], request.POST['payload'])
+    return _call_callbacks(request, 'publish', request.user, request.POST['channel_name'], request.POST['payload'])
 
 @webhook
 def destroy_channel(request):
-    return _call_callbacks('destroy', request.user, channel = request.POST['channel_name'])
+    return _call_callbacks(request, 'destroy', request.user, channel = request.POST['channel_name'])
 
 @webhook
 def subscribe(request):
     signals['subscribe'].send(request.user, channel = request.POST['channel_name'])
-    return _call_callbacks('subscribe', request.user, channel = request.POST['channel_name'])
+    return _call_callbacks(request, 'subscribe', request.user, channel = request.POST['channel_name'])
 
 @webhook
 def unsubscribe(request):
     signals['unsubscribe'].send_robust(request.user, channel = request.POST['channel_name'])
-    return _call_callbacks('unsubscribe', request.user, channel = request.POST['channel_name'])
+    return _call_callbacks(request, 'unsubscribe', request.user, channel = request.POST['channel_name'])
