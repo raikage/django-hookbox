@@ -121,7 +121,7 @@ def connect(request):
     if request.user.is_authenticated():
         username = request.user.username
     else:
-        username = ' _' + ''.join(random.choice(string.letters + string.digits) for i in xrange(10))
+        username = 'Anonymous_' + ''.join(random.choice(string.letters + string.digits) for i in xrange(10))
 
     return {
         'name': username
